@@ -22,10 +22,8 @@ def main():
 
     p_mdx = conv_sub.add_parser("mdx", help="Convert MDX-Net .pth/.onnx to .onyx")
     p_mdx.add_argument("-o", "--output", required=True, help="Output .onyx file")
-    p_mdx.add_argument("--vocals", required=True, help="Vocals model (.pth or .onnx)")
-    p_mdx.add_argument("--bass", required=True, help="Bass model (.pth or .onnx)")
-    p_mdx.add_argument("--drums", required=True, help="Drums model (.pth or .onnx)")
-    p_mdx.add_argument("--other", required=True, help="Other model (.pth or .onnx)")
+    for s in ['vocals', 'bass', 'drums', 'other']:
+        p_mdx.add_argument(f"--{s}", default=None, help=f"{s.capitalize()} model (.pth or .onnx)")
     p_mdx.add_argument("--mixer", default=None, help="Mixer model (.pth or .onnx)")
     p_mdx.add_argument("--opset", type=int, default=13, help="ONNX opset version")
     p_mdx.set_defaults(func=_convert_mdx)
@@ -59,7 +57,12 @@ def _convert_mdx(args):
     files = {}
     sources = {}
 
-    for name in ['vocals', 'bass', 'drums', 'other']:
+    provided = [s for s in ['vocals', 'bass', 'drums', 'other'] if getattr(args, s)]
+    if not provided:
+        print("Error: at least one source model required (--vocals, --bass, --drums, --other)")
+        sys.exit(1)
+
+    for name in provided:
         src_path = getattr(args, name)
         p = Path(src_path)
         if p.suffix.lower() == '.onnx':
@@ -108,6 +111,7 @@ def _convert_mdx(args):
             'dim_c': 4,
             'sources': sources,
         },
+        'supports': provided,
     }
     create_package(output_path=args.output, model_type='mdx', metadata=meta, file_data=file_data)
 
