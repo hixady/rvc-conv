@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "onyx-conv"
+version = "0.1.0"
+description = "Multi-arch model converter — export PyTorch checkpoints to ONNX and pack into .onyx containers"
+requires-python = ">=3.10"
+dependencies = [
+    "onnx",
+    "onnxsim",
+    "onyx",
+]
+
+[project.optional-dependencies]
+rvc = ["torch>=2.0.0"]
+mdx = ["torch", "demucs"]
+all = ["onyx-conv[rvc,mdx]"]
+
+[project.scripts]
+onyx-conv = "onyx_conv.cli:main"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
